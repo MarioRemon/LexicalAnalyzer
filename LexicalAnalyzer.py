@@ -214,9 +214,19 @@ E.bind("<FocusIn>", temp_text)
 
 E.pack()
 
-
 def onClick():
     l1 = Lexer()
+    LabelID = Label(root,text = "Identifier: "+ "(^[^\d\W]\w*\Z)")
+    LabelNum = Label(root, text= "Number: "+"[0.0-9.9]+")
+    LabelOp = Label(root, text="[+\-\*\/]")
+    LabelP1 = Label(root, text = "[\(]")
+    LabelP2 = Label(root, text="[\)]")
+    LabelID.pack()
+    LabelNum.pack()
+    LabelOp.pack()
+    LabelP1.pack()
+    LabelP2.pack()
+
     l1.exc(E.get())
     # l1.trace()
     showDFAButton.pack()

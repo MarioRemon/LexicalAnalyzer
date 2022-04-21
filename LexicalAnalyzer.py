@@ -26,12 +26,14 @@ class Lexer:
         patternOP = r"[+\-\*\/]"
         patternParenthesis1 = r"[\(]"
         patternParenthesis2 = r"[\)]"
+        patternNonID = r"[0-9]+[a-zA-Z]"
         for line in Source_Code:
             tokenList = nltk.wordpunct_tokenize(line)
             print(tokenList)
 
         num = p1 = p2 = op = 0
         for i in range(0, len(tokenList)):
+            count = 0
             print(tokenList[i])
             if (tokenList[i] == '/' and tokenList[i + 1] == '0'):
                 # print("Invalid divide!")
@@ -40,6 +42,7 @@ class Lexer:
                 break
             if re.fullmatch(patternID, tokenList[i]):
                 # print("Match ID!")
+                count = 1
                 label2 = Label(root, text=tokenList[i] + " : Identifier ")
                 label2.pack()
                 num = num + 1
@@ -47,6 +50,7 @@ class Lexer:
                 print("Not a match ID!")
             if re.fullmatch(patternNum, tokenList[i]):
                 # print("Match Num!")
+                count = 1
                 label3 = Label(root, text=tokenList[i] + " : Number ")
                 label3.pack()
                 num = num + 1
@@ -54,6 +58,7 @@ class Lexer:
                 print("Not a match Num!")
             if re.fullmatch(patternOP, tokenList[i]):
                 # print("Match op!")
+                count = 1
                 label4 = Label(root, text=tokenList[i] + " : Operator ")
                 label4.pack()
                 op = op + 1
@@ -61,6 +66,7 @@ class Lexer:
                 print("Not a match op!")
             if re.fullmatch(patternParenthesis1, tokenList[i]):
                 # print("Match Parenthesis!")
+                count = 1
                 label5 = Label(root, text=tokenList[i] + " : Open Bracket ")
                 label5.pack()
                 p1 = p1 + 1
@@ -68,11 +74,15 @@ class Lexer:
                 print("Not a match Open Parenthesis!")
             if re.fullmatch(patternParenthesis2, tokenList[i]):
                 # print("Match Parenthesis!")
+                count = 1
                 label6 = Label(root, text=tokenList[i] + " : Close Bracket ")
                 label6.pack()
                 p2 = p2 + 1
             else:
                 print("Not a match Close Parenthesis!")
+            if(count == 0):
+                label15 = Label(root,text= tokenList[i] + ": Don't match any of the regular expressions")
+                label15.pack()
         if ((num - op) == 1 and op != 0):
             pass
         else:
@@ -112,68 +122,102 @@ class Lexer:
                                     else:
                                         if re.fullmatch(patternParenthesis2, tokenList[i]):
                                             tokenType[i] = 'CLOSEBRACKET'
+                                        else:
+                                            tokenType[i] = 'INVALIDID'
         # ///////////////////////////////////////////////////////////////
 
         dfa = DFA(
             states={'1', '2', 'ID1', 'ID2', 'NUM1', 'NUM2', 'OP1', 'OP2', 'OP3', 'OP4', '3', 'ID3', 'ID4', 'NUM3',
                     'NUM4', 'X'},
             input_symbols={'IDENTIFIER', 'PLUS', 'MINUS', 'MULT', 'DIV', 'OPENBRACKET', 'CLOSEBRACKET', 'NUMBER[1-9]',
-                           '0'},
+                           '0','INVALIDID'},
             transitions={
                 '1': {'IDENTIFIER': 'ID1', 'PLUS': 'X', 'MINUS': 'X', 'MULT': 'X', 'DIV': 'X', 'OPENBRACKET': '2',
-                      'CLOSEBRACKET': 'X', 'NUMBER[1-9]': 'NUM1', '0': 'NUM1'},
+                      'CLOSEBRACKET': 'X', 'NUMBER[1-9]': 'NUM1', '0': 'NUM1','INVALIDID':'X'},
                 'ID1': {'IDENTIFIER': 'ID1', 'PLUS': 'OP1', 'MINUS': 'OP1', 'MULT': 'OP1', 'DIV': 'OP2',
-                        'OPENBRACKET': 'X', 'CLOSEBRACKET': 'X', 'NUMBER[1-9]': 'ID1', '0': 'ID1'},
+                        'OPENBRACKET': 'X', 'CLOSEBRACKET': 'X', 'NUMBER[1-9]': 'ID1', '0': 'ID1','INVALIDID':'X'},
                 'NUM1': {'IDENTIFIER': 'X', 'PLUS': 'OP1', 'MINUS': 'OP1', 'MULT': 'OP1', 'DIV': 'OP2',
-                         'OPENBRACKET': 'X', 'CLOSEBRACKET': 'X', 'NUMBER[1-9]': 'NUM1', '0': 'NUM1'},
+                         'OPENBRACKET': 'X', 'CLOSEBRACKET': 'X', 'NUMBER[1-9]': 'NUM1', '0': 'NUM1','INVALIDID':'X'},
                 'OP1': {'IDENTIFIER': 'ID3', 'PLUS': 'X', 'MINUS': 'X', 'MULT': 'X', 'DIV': 'X', 'OPENBRACKET': '2',
-                        'CLOSEBRACKET': 'X', 'NUMBER[1-9]': 'NUM3', '0': 'NUM3'},
+                        'CLOSEBRACKET': 'X', 'NUMBER[1-9]': 'NUM3', '0': 'NUM3','INVALIDID':'X'},
                 'OP2': {'IDENTIFIER': 'ID3', 'PLUS': 'X', 'MINUS': 'X', 'MULT': 'X', 'DIV': 'X', 'OPENBRACKET': '2',
-                        'CLOSEBRACKET': 'X', 'NUMBER[1-9]': 'NUM3', '0': 'X'},
+                        'CLOSEBRACKET': 'X', 'NUMBER[1-9]': 'NUM3', '0': 'X','INVALIDID':'X'},
                 'ID3': {'IDENTIFIER': 'ID3', 'PLUS': 'OP1', 'MINUS': 'OP1', 'MULT': 'OP1', 'DIV': 'OP2',
-                        'OPENBRACKET': 'X', 'CLOSEBRACKET': 'X', 'NUMBER[1-9]': 'ID3', '0': 'ID3'},
+                        'OPENBRACKET': 'X', 'CLOSEBRACKET': 'X', 'NUMBER[1-9]': 'ID3', '0': 'ID3','INVALIDID':'X'},
                 'NUM3': {'IDENTIFIER': 'X', 'PLUS': 'OP1', 'MINUS': 'OP1', 'MULT': 'OP1', 'DIV': 'OP2',
-                         'OPENBRACKET': 'X', 'CLOSEBRACKET': 'X', 'NUMBER[1-9]': 'NUM3', '0': 'NUM3'},
+                         'OPENBRACKET': 'X', 'CLOSEBRACKET': 'X', 'NUMBER[1-9]': 'NUM3', '0': 'NUM3','INVALIDID':'X'},
                 '3': {'IDENTIFIER': 'X', 'PLUS': 'OP1', 'MINUS': 'OP1', 'MULT': 'OP1', 'DIV': 'OP2', 'OPENBRACKET': 'X',
-                      'CLOSEBRACKET': 'X', 'NUMBER[1-9]': 'X', '0': 'X'},
+                      'CLOSEBRACKET': 'X', 'NUMBER[1-9]': 'X', '0': 'X','INVALIDID':'X'},
                 'X': {'IDENTIFIER': 'X', 'PLUS': 'X', 'MINUS': 'X', 'MULT': 'X', 'DIV': 'X', 'OPENBRACKET': 'X',
-                      'CLOSEBRACKET': 'X', 'NUMBER[1-9]': 'X', '0': 'X'},
+                      'CLOSEBRACKET': 'X', 'NUMBER[1-9]': 'X', '0': 'X','INVALIDID':'X'},
                 '2': {'IDENTIFIER': 'ID2', 'PLUS': 'X', 'MINUS': 'X', 'MULT': 'X', 'DIV': 'X', 'OPENBRACKET': 'X',
-                      'CLOSEBRACKET': 'X', 'NUMBER[1-9]': 'NUM2', '0': 'NUM2'},
+                      'CLOSEBRACKET': 'X', 'NUMBER[1-9]': 'NUM2', '0': 'NUM2','INVALIDID':'X'},
                 'ID2': {'IDENTIFIER': 'ID2', 'PLUS': 'OP3', 'MINUS': 'OP3', 'MULT': 'OP3', 'DIV': 'OP4',
-                        'OPENBRACKET': 'X', 'CLOSEBRACKET': 'X', 'NUMBER[1-9]': 'ID2', '0': 'ID2'},
+                        'OPENBRACKET': 'X', 'CLOSEBRACKET': 'X', 'NUMBER[1-9]': 'ID2', '0': 'ID2','INVALIDID':'X'},
                 'NUM2': {'IDENTIFIER': 'X', 'PLUS': 'OP3', 'MINUS': 'OP3', 'MULT': 'OP3', 'DIV': 'OP4',
-                         'OPENBRACKET': 'X', 'CLOSEBRACKET': 'X', 'NUMBER[1-9]': 'NUM2', '0': 'NUM2'},
+                         'OPENBRACKET': 'X', 'CLOSEBRACKET': 'X', 'NUMBER[1-9]': 'NUM2', '0': 'NUM2','INVALIDID':'X'},
                 'OP3': {'IDENTIFIER': 'ID4', 'PLUS': 'X', 'MINUS': 'X', 'MULT': 'X', 'DIV': 'X', 'OPENBRACKET': 'X',
-                        'CLOSEBRACKET': 'X', 'NUMBER[1-9]': 'NUM4', '0': 'NUM4'},
+                        'CLOSEBRACKET': 'X', 'NUMBER[1-9]': 'NUM4', '0': 'NUM4','INVALIDID':'X'},
                 'OP4': {'IDENTIFIER': 'ID4', 'PLUS': 'X', 'MINUS': 'X', 'MULT': 'X', 'DIV': 'X', 'OPENBRACKET': 'X',
-                        'CLOSEBRACKET': 'X', 'NUMBER[1-9]': 'NUM4', '0': 'X'},
+                        'CLOSEBRACKET': 'X', 'NUMBER[1-9]': 'NUM4', '0': 'X','INVALIDID':'X'},
                 'ID4': {'IDENTIFIER': 'ID4', 'PLUS': 'OP3', 'MINUS': 'OP3', 'MULT': 'OP3', 'DIV': 'OP4',
-                        'OPENBRACKET': 'X', 'CLOSEBRACKET': '3', 'NUMBER[1-9]': 'ID4', '0': 'ID4'},
+                        'OPENBRACKET': 'X', 'CLOSEBRACKET': '3', 'NUMBER[1-9]': 'ID4', '0': 'ID4','INVALIDID':'X'},
                 'NUM4': {'IDENTIFIER': 'X', 'PLUS': 'OP3', 'MINUS': 'OP3', 'MULT': 'OP3', 'DIV': 'OP4',
-                         'OPENBRACKET': 'X', 'CLOSEBRACKET': '3', 'NUMBER[1-9]': 'NUM4', '0': 'NUM4'}
+                         'OPENBRACKET': 'X', 'CLOSEBRACKET': '3', 'NUMBER[1-9]': 'NUM4', '0': 'NUM4','INVALIDID':'X'}
 
             },
             initial_state='1',
-            final_states={'ID3', 'NUM3', '3'}
+            #final_states={'ID3', 'NUM3', '3'}
+            final_states={'1', '2', 'ID1', 'ID2', 'NUM1', 'NUM2', 'OP1', 'OP2', 'OP3', 'OP4', '3', 'ID3', 'ID4', 'NUM3',
+                    'NUM4', 'X'}
         )
-
-        if dfa.accepts_input(tokenType):
-            print('\nAccepted')
-            label9 = Label(root, text="Accepted")
-            label9.pack()
+        if (str(dfa.read_input(tokenType)) == 'ID3'):
+            label100 = Label(root, text= "Input Accepted")
+            label100.pack()
+            label11 = Label(root, text="Final State : " + str(dfa.read_input(tokenType)))
+            label11.pack()
+            print("Accepted")
         else:
-            label10 = Label(root, text="Rejected, the DFA stopped on a non-final state")
-            label10.pack()
-            print('Rejected, the DFA stopped on a non-final state')
+            if (str(dfa.read_input(tokenType)) == '3'):
+                label99 = Label(root, text="Input Accepted")
+                label99.pack()
+                label95 = Label(root, text="Final State : " + str(dfa.read_input(tokenType)))
+                label95.pack()
+                print("Accepted")
+                print("Final State : " + str(dfa.read_input(tokenType)))
+            else:
+                if (str(dfa.read_input(tokenType)) == 'NUM3'):
+                    label98 = Label(root, text="Input Accepted")
+                    label98.pack()
 
-        print("Final State : " + str(dfa.read_input(tokenType)))
+                    label94 = Label(root, text="Final State : " + str(dfa.read_input(tokenType)))
+                    label94.pack()
+                    print("Accepted")
+                    print("Final State : " + str(dfa.read_input(tokenType)))
+                else:
+                    print("Rejected, the DFA stopped on a non-final state  " + str(dfa.read_input(tokenType)))
+                    label97 = Label(root, text="Rejected, the DFA stopped on a non-final state  " + str(dfa.read_input(tokenType)))
+                    label97.pack()
         states_list = (list(dfa.read_input_stepwise(tokenType)))
         print("Tokens : ", tokenType)
         print("State Sequence : ", states_list)
-
-        label11 = Label(root, text="Final State : " + str(dfa.read_input(tokenType)))
-        label11.pack()
+        # if dfa.accepts_input(tokenType):
+        #         print('\nAccepted')
+        #         label9 = Label(root, text="Input is: Accepted")
+        #         label9.pack()
+        # else:
+        #     label10 = Label(root, text="Rejected, the DFA stopped on a non-final state")
+        #     label10.pack()
+        #     #dfa._check_for_input_rejection(str(dfa.read_input(tokenType)))
+        #     print('Rejected, the DFA stopped on a non-final state')
+        #
+        # print("Final State : " + str(dfa.read_input(tokenType)))
+        # states_list = (list(dfa.read_input_stepwise(tokenType)))
+        # print("Tokens : ", tokenType)
+        # print("State Sequence : ", states_list)
+        #
+        # label11 = Label(root, text="Final State : " + str(dfa.read_input(tokenType)))
+        # label11.pack()
         label12 = Label(root, text="Tokens : " + str(tokenType))
         label12.pack()
         label13 = Label(root, text="State Sequence :" + str(states_list))
@@ -215,21 +259,21 @@ E.bind("<FocusIn>", temp_text)
 E.pack()
 
 def onClick():
+    showDFAButton.pack()
     l1 = Lexer()
     LabelID = Label(root,text = "Identifier: "+ "(^[^\d\W]\w*\Z)")
     LabelNum = Label(root, text= "Number: "+"[0.0-9.9]+")
-    LabelOp = Label(root, text="[+\-\*\/]")
-    LabelP1 = Label(root, text = "[\(]")
-    LabelP2 = Label(root, text="[\)]")
+    LabelOp = Label(root, text= "Operators: "+ "[+\-\*\/]")
+    LabelP1 = Label(root, text = "Open Brackets: "+"[\(]")
+    LabelP2 = Label(root, text="Closed Brackets: "+"[\)]")
     LabelID.pack()
     LabelNum.pack()
     LabelOp.pack()
     LabelP1.pack()
     LabelP2.pack()
-
     l1.exc(E.get())
     # l1.trace()
-    showDFAButton.pack()
+
 
 
 # ////////////
